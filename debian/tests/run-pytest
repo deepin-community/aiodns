@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+cp -a tests.py "$AUTOPKGTEST_TMP"
+cd "$AUTOPKGTEST_TMP"
+
+for py3vers in $(py3versions -s); do
+    echo "Testing with $py3vers:"
+    $py3vers tests.py
+done

@@ -1,0 +1,21 @@
+From: Scott Kitterman <scott@kitterman.com>
+Date: Mon, 13 Mar 2023 21:22:32 -0400
+Subject: Skip bad test
+
+---
+ tests.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/tests.py b/tests.py
+index fc0e2b9..9b97b2f 100755
+--- a/tests.py
++++ b/tests.py
+@@ -150,6 +150,8 @@ class DNSTest(unittest.TestCase):
+         with self.assertRaises(aiodns.error.DNSError):
+             self.loop.run_until_complete(f)
+ 
++    # FIXME
++    @unittest.skip("The site used for this test no longer returns bad chars.")
+     def test_query_bad_chars(self):
+         f = self.resolver.query('xn--cardeosapeluqueros-r0b.com', 'MX')
+         result = self.loop.run_until_complete(f)
