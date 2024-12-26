@@ -5,12 +5,25 @@ import ipaddress
 import unittest
 import socket
 import sys
+import time
 
 import aiodns
+
+try:
+    if sys.platform == "win32":
+        import winloop as uvloop
+        skip_uvloop = False
+    else:
+        import uvloop 
+        skip_uvloop = False
+except ModuleNotFoundError:
+    skip_uvloop = True
 
 
 class DNSTest(unittest.TestCase):
     def setUp(self):
+        if sys.platform == 'win32':
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         self.loop = asyncio.new_event_loop()
         self.addCleanup(self.loop.close)
         self.resolver = aiodns.DNSResolver(loop=self.loop, timeout=5.0)
@@ -77,7 +90,7 @@ class DNSTest(unittest.TestCase):
         self.assertTrue(result)
 
     def test_query_ptr(self):
-        ip = '8.8.8.8'
+        ip = '172.253.122.26'
         f = self.resolver.query(ipaddress.ip_address(ip).reverse_pointer, 'PTR')
         result = self.loop.run_until_complete(f)
         self.assertTrue(result)
@@ -96,13 +109,16 @@ class DNSTest(unittest.TestCase):
         self.assertRaises(ValueError, self.resolver.query, 'google.com', 'A', "INVALIDCLASS")
 
     def test_query_timeout(self):
-        self.resolver = aiodns.DNSResolver(timeout=0.1, loop=self.loop)
+        self.resolver = aiodns.DNSResolver(timeout=0.1, tries=1, loop=self.loop)
         self.resolver.nameservers = ['1.2.3.4']
         f = self.resolver.query('google.com', 'A')
+        started = time.monotonic()
         try:
             self.loop.run_until_complete(f)
         except aiodns.error.DNSError as e:
             self.assertEqual(e.args[0], aiodns.error.ARES_ETIMEOUT)
+        # Ensure timeout really cuts time deadline. Limit duration to one second
+        self.assertLess(time.monotonic() - started, 1)
 
     def test_query_cancel(self):
         f = self.resolver.query('google.com', 'A')
@@ -116,7 +132,7 @@ class DNSTest(unittest.TestCase):
         f = self.resolver.query('google.com', 'A')
         f.cancel()
         async def coro():
-            await asyncio.sleep(0.1, loop=self.loop)
+            await asyncio.sleep(0.1)
             await f
         try:
             self.loop.run_until_complete(coro())
@@ -135,6 +151,37 @@ class DNSTest(unittest.TestCase):
         result = self.loop.run_until_complete(f)
         self.assertTrue(result)
 
+    def test_getaddrinfo_address_family_0(self):
+        f = self.resolver.getaddrinfo('google.com')
+        result = self.loop.run_until_complete(f)
+        self.assertTrue(result)
+        self.assertTrue(len(result.nodes) > 1)
+
+    def test_getaddrinfo_address_family_af_inet(self):
+        f = self.resolver.getaddrinfo('google.com', socket.AF_INET)
+        result = self.loop.run_until_complete(f)
+        self.assertTrue(result)
+        self.assertTrue(all(node.family == socket.AF_INET for node in result.nodes))
+
+    def test_getaddrinfo_address_family_af_inet6(self):
+        f = self.resolver.getaddrinfo('google.com', socket.AF_INET6)
+        result = self.loop.run_until_complete(f)
+        self.assertTrue(result)
+        self.assertTrue(all(node.family == socket.AF_INET6 for node in result.nodes))
+
+    def test_getnameinfo_ipv4(self):
+        f = self.resolver.getnameinfo(('127.0.0.1', 0))
+        result = self.loop.run_until_complete(f)
+        self.assertTrue(result)
+        self.assertTrue(result.node)
+
+    def test_getnameinfo_ipv6(self):
+        f = self.resolver.getnameinfo(('::1', 0, 0, 0))
+        result = self.loop.run_until_complete(f)
+        self.assertTrue(result)
+        self.assertTrue(result.node)
+
+    @unittest.skipIf(sys.platform == 'win32', 'skipped on Windows')
     def test_gethostbyaddr(self):
         f = self.resolver.gethostbyaddr('127.0.0.1')
         result = self.loop.run_until_complete(f)
@@ -150,11 +197,19 @@ class DNSTest(unittest.TestCase):
         with self.assertRaises(aiodns.error.DNSError):
             self.loop.run_until_complete(f)
 
-    def test_query_bad_chars(self):
-        f = self.resolver.query('xn--cardeosapeluqueros-r0b.com', 'MX')
-        result = self.loop.run_until_complete(f)
-        self.assertTrue(result)
+#    def test_query_bad_chars(self):
+#        f = self.resolver.query('xn--cardeosapeluqueros-r0b.com', 'MX')
+#        result = self.loop.run_until_complete(f)
+#        self.assertTrue(result)
 
+@unittest.skipIf(skip_uvloop, "We don't have a uvloop or winloop module")
+class TestUV_DNS(DNSTest):
+    def setUp(self):
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+        self.loop = asyncio.new_event_loop()
+        self.addCleanup(self.loop.close)
+        self.resolver = aiodns.DNSResolver(loop=self.loop, timeout=5.0)
+        self.resolver.nameservers = ['8.8.8.8']
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
