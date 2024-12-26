@@ -1,8 +1,7 @@
 Source: aiodns
 Section: python
 Priority: optional
-Maintainer: Debian Python Team <team+python@tracker.debian.org>
-Uploaders: Scott Kitterman <scott@kitterman.com>, Tanguy Ortolo <tanguy+debian@ortolo.eu>
+Maintainer: Debian QA Group <packages@qa.debian.org>
 Build-Depends:
     debhelper-compat (= 13),
     dh-python,
@@ -11,8 +10,8 @@ Build-Depends:
     python3-setuptools,
 Standards-Version: 4.6.2
 Homepage: https://github.com/saghul/aiodns
-Vcs-Git: https://salsa.debian.org/python-team/packages/aiodns.git
-Vcs-Browser: https://salsa.debian.org/python-team/packages/aiodns
+Vcs-Git: https://salsa.debian.org/debian/packages/aiodns.git
+Vcs-Browser: https://salsa.debian.org/debian/packages/aiodns
 Rules-Requires-Root: no
 
 Package: python3-aiodns

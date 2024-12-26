@@ -22,6 +22,7 @@ setup(name             = "aiodns",
       long_description_content_type = "text/x-rst",
       install_requires = ['pycares>=4.0.0'],
       packages         = ['aiodns'],
+      package_data     = {"aiodns": ["py.typed"]},
       platforms        = ["POSIX", "Microsoft Windows"],
       classifiers      = [
           "Development Status :: 5 - Production/Stable",
@@ -31,9 +32,10 @@ setup(name             = "aiodns",
           "Operating System :: Microsoft :: Windows",
           "Programming Language :: Python",
           "Programming Language :: Python :: 3",
-          "Programming Language :: Python :: 3.6",
-          "Programming Language :: Python :: 3.7",
           "Programming Language :: Python :: 3.8",
-          "Programming Language :: Python :: 3.9"
+          "Programming Language :: Python :: 3.9",
+          "Programming Language :: Python :: 3.10",
+          "Programming Language :: Python :: 3.11",
+          "Programming Language :: Python :: 3.12"
       ]
 )

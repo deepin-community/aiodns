@@ -1,3 +1,27 @@
+aiodns (3.2.0-2) unstable; urgency=medium
+
+  * Orphan the package, see #1074759
+    - Remove myself from uploaders and update maintainer to Debian QA Group
+    - Update Vcs-* to Debian group
+
+ -- Scott Kitterman <scott@kitterman.com>  Tue, 02 Jul 2024 10:08:57 -0400
+
+aiodns (3.2.0-1) unstable; urgency=medium
+
+  * New upstream release
+    - Drop all patches, incorporated upstream
+
+ -- Scott Kitterman <scott@kitterman.com>  Wed, 03 Apr 2024 15:46:19 -0400
+
+aiodns (3.1.1-1) unstable; urgency=medium
+
+  * Point debian/watch at pypi, since that's where the tarballs are now
+  * New upstream release
+    - Drop all patches, incorporated upstream
+  * Add d/p/0001-Update-address-in-test_query_ptr.patch to fix failing test
+
+ -- Scott Kitterman <scott@kitterman.com>  Tue, 02 Jan 2024 11:40:26 -0500
+
 aiodns (3.0.0-2) unstable; urgency=medium
 
   * Add patch to skip test which no longer works because the domain used in
